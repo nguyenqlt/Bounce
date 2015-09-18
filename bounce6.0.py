@@ -9,6 +9,8 @@ h = 3 ## meters, initial height of ball
 vx0 = 6 ## initial horizontal velocity
 y_max = 3 ## initial max height
 
+
+# Hi
 ## DEFINE SPRING
 return_axis = vector(r0*math.cos(theta0),r0*math.sin(theta0),0)
 spring = helix(pos=(return_axis.x,h - return_axis.y,0), axis=return_axis, radius=0.6,color=color.yellow)
