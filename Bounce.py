@@ -18,15 +18,18 @@ spring.constant = 4000 ## N/m
 
 f = frame()
 ## QUADCOPTER
-ellipsoid( pos=(0,h,0), size=(3, 1, 5))
-ellipsoid(frame= f, pos=(1,h,0), size = (1.5, 0.5, 2.5), color = color.red)
-ellipsoid(frame= f, pos=(1,h,1), size = (1.5, 0.5, 2.5), color = color.red)
-ellipsoid(frame= f, pos=(-1,h,-1), size = (1.5, 0.5, 2.5), color = color.red)
-ellipsoid(frame= f, pos=(-1,h,1), size = (1.5, 0.5, 2.5), color = color.red)
+ellipsoid(frame=f, pos=(0,0,0), size=(3, 1, 5))
+ellipsoid(frame= f, pos=(1,0,-1), size = (1.5, 0.5, 2.5), color = color.red)
+ellipsoid(frame= f, pos=(1,0,1), size = (1.5, 0.5, 2.5), color = color.red)
+ellipsoid(frame= f, pos=(-1,0,-1), size = (1.5, 0.5, 2.5), color = color.red)
+ellipsoid(frame= f, pos=(-1,0,1), size = (1.5, 0.5, 2.5), color = color.red)
 f.mass = 0.5 # kg
 f.velocity = vector(vx0,0,0)
 f.acceleration = vector(0,0,0)
 f.force = vector(0,0,0)
+f.pos = vector(0,h,0)
+f.axis = (0.5,0.25,0)
+
 
 floor = box(size=(50,.01,2),pos=(0,0,0))
 
