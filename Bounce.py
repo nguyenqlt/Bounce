@@ -1,10 +1,11 @@
 from __future__ import division
 from visual import *
 from visual.graph import *
+from scipy.integrate import quad, dblquad
 
 ## INITIAL CONDITIONS
 r0 = 2 ## meters, relaxed length of spring
-theta0 = math.radians(90) ## free angle
+theta0 = math.radians(75) ## free angle
 h = 3 ## meters, initial height of f
 vx0 = 6 ## initial horizontal velocity
 y_max = 3 ## initial max height
@@ -28,8 +29,8 @@ f.velocity = vector(vx0,0,0)
 f.acceleration = vector(0,0,0)
 f.force = vector(0,0,0)
 f.pos = vector(0,h,0)
-f.axis = (0.5,0.25,0)
-
+#doublyintegratedanglevariable? 
+#angvar = dblquad(lambda x,y: cos(theta0))
 
 floor = box(size=(50,.01,2),pos=(0,0,0))
 
