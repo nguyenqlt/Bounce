@@ -1,14 +1,16 @@
 from __future__ import division
 from visual import *
 from visual.graph import *
-from scipy.integrate import quad, dblquad
+
 
 ## INITIAL CONDITIONS
 r0 = 2 ## meters, relaxed length of spring
-theta0 = math.radians(75) ## free angle
+theta0 = math.radians(90) ## free angle
 h = 3 ## meters, initial height of f
 vx0 = 6 ## initial horizontal velocity
 y_max = 3 ## initial max height
+
+floor = box(size=(50,.01,2),pos=(0,0,0))
 
 ## DEFINE SPRING
 return_axis = vector(r0*math.cos(theta0),r0*math.sin(theta0),0)
@@ -19,20 +21,17 @@ spring.constant = 4000 ## N/m
 
 f = frame()
 ## QUADCOPTER
-ellipsoid(frame=f, pos=(0,0,0), size=(3, 1, 5))
-ellipsoid(frame= f, pos=(1,0,-1), size = (1.5, 0.5, 2.5), color = color.red)
-ellipsoid(frame= f, pos=(1,0,1), size = (1.5, 0.5, 2.5), color = color.red)
-ellipsoid(frame= f, pos=(-1,0,-1), size = (1.5, 0.5, 2.5), color = color.red)
-ellipsoid(frame= f, pos=(-1,0,1), size = (1.5, 0.5, 2.5), color = color.red)
+ellipsoid(frame=f, pos=(0,0,0), size=(3, 1, 3))
+ellipsoid(frame= f, pos=(1.2,0.4,-1.2), size = (1.5, 0.5, 1.5), color = color.red)
+ellipsoid(frame= f, pos=(1.2,0.4,1.2), size = (1.5, 0.5, 1.5), color = color.red)
+ellipsoid(frame= f, pos=(-1.2,0.4,-1.2), size = (1.5, 0.5, 1.5), color = color.red)
+ellipsoid(frame= f, pos=(-1.2,0.4,1.2), size = (1.5, 0.5, 1.5), color = color.red)
 f.mass = 0.5 # kg
 f.velocity = vector(vx0,0,0)
 f.acceleration = vector(0,0,0)
 f.force = vector(0,0,0)
 f.pos = vector(0,h,0)
-#doublyintegratedanglevariable? 
-#angvar = dblquad(lambda x,y: cos(theta0))
-
-floor = box(size=(50,.01,2),pos=(0,0,0))
+f.rotate(angle=0.46, axis = (0,0,0), origin=f.pos)
 
 ## OTHER DEFINITIONS
 accelOfGrav = vector(0,-9.8,0) ## acceleration of gravity
@@ -48,12 +47,12 @@ tinySteps = 100
 tiny_dt = dt/tinySteps
 
 ## GRAPHING
-graph1 = gdisplay()
-energygraph = gcurve(color=color.red)
-Kgraph = gcurve(color=color.green)
-Ugravgraph = gcurve(color=color.orange)
-Uspringgraph = gcurve(color = color.yellow)
-positiongraph = gcurve(color=color.cyan)
+#graph1 = gdisplay()
+#energygraph = gcurve(color=color.red)
+#Kgraph = gcurve(color=color.green)
+#Ugravgraph = gcurve(color=color.orange)
+#Uspringgraph = gcurve(color = color.yellow)
+#positiongraph = gcurve(color=color.cyan)
 
 spring.previous_deflection=0
 
@@ -116,6 +115,10 @@ while True:
         f.velocity += f.acceleration * dt ##update f velocity
         f.pos += f.velocity * dt ##update f position
 
+		#f.rot_acc = 
+		#f.rot_velocity =
+		#f.rot_pos = 
+		
         ## ENERGY ACCOUNTING
         K = 0.5 * f.mass * f.velocity.mag**2
         Ugrav = f.mass * 9.8 * f.pos.y
@@ -123,8 +126,8 @@ while True:
         energy = K + Ugrav + Uspring #calculate current energy
 
     ## UPDATE GRAPHS
-    energygraph.plot(pos=(f.pos.x,energy))
-    positiongraph.plot(pos=(f.pos.x, f.pos.y))
-    Kgraph.plot(pos=(f.pos.x,K))
-    Ugravgraph.plot(pos=(f.pos.x,Ugrav))
-    Uspringgraph.plot(pos=(f.pos.x,Uspring))
+   #energygraph.plot(pos=(f.pos.x,energy))
+    #positiongraph.plot(pos=(f.pos.x, f.pos.y))
+    #Kgraph.plot(pos=(f.pos.x,K))
+    #Ugravgraph.plot(pos=(f.pos.x,Ugrav))
+    #Uspringgraph.plot(pos=(f.pos.x,Uspring))
