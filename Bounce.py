@@ -31,7 +31,17 @@ f.velocity = vector(vx0,0,0)
 f.acceleration = vector(0,0,0)
 f.force = vector(0,0,0)
 f.pos = vector(0,h,0)
-f.rotate(angle=0.5, axis = (0,0,1), origin=f.pos)
+
+f.current_rot = 0.0
+def rotate(new_rot):
+    f.rotate(angle=(new_rot - f.current_rot), axis = (0,0,1), origin=f.pos)
+    f.current_rot = new_rot
+#rotate(0.5)
+	
+f.torque = 0.0
+f.rot_vel = 1.0
+f.rot_pos = 0.0
+mom_inertia = (f.mass * (0.01)**2)
 
 ## OTHER DEFINITIONS
 accelOfGrav = vector(0,-9.8,0) ## acceleration of gravity
@@ -69,8 +79,8 @@ while True:
             spring.deflection = return_axis.mag*norm(spring.axis) - spring.axis
             change_in_length = spring.deflection.mag - previous_length ## current - previous
             deflection_rate_of_change = change_in_length / tiny_dt
-			
-			
+            
+            
             ## ENERGY CONTROL LAW
             energyDifference = energy - energy0
             energyGain = 100000.0 ##Hz, this is proportional gain
@@ -115,10 +125,11 @@ while True:
         f.velocity += f.acceleration * dt ##update f velocity
         f.pos += f.velocity * dt ##update f position
 
-		#f.rot_acc += f.torque/(mass*)
-		#f.rot_vel += f.rot_acc * dt
-		#f.rot_pos += f.rot_velocity * dt
-		
+        f.rot_acc = f.torque/(mom_inertia)
+        f.rot_vel += f.rot_acc * dt
+        f.rot_pos += f.rot_vel * dt
+        #print "f.rot_acc"
+        rotate(f.rot_pos)
         ## ENERGY ACCOUNTING
         K = 0.5 * f.mass * f.velocity.mag**2
         Ugrav = f.mass * 9.8 * f.pos.y
