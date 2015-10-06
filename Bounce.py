@@ -111,13 +111,13 @@ while True:
             spring.axis = return_axis ##reset to fixed angle
             spring.deflection = vector(0,0,0) ##make sure spring is expanded
 
-        f.acceleration = f.force/(f.mass*h**2)
+        f.acceleration = f.force/f.mass
         f.velocity += f.acceleration * dt ##update f velocity
         f.pos += f.velocity * dt ##update f position
 
 		#f.rot_acc += f.torque/(mass*)
 		#f.rot_vel += f.rot_acc * dt
-		#f.rot_pos += f.rot_vel * dt
+		#f.rot_pos += f.rot_velocity * dt
 		
         ## ENERGY ACCOUNTING
         K = 0.5 * f.mass * f.velocity.mag**2
