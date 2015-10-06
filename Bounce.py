@@ -31,7 +31,7 @@ f.velocity = vector(vx0,0,0)
 f.acceleration = vector(0,0,0)
 f.force = vector(0,0,0)
 f.pos = vector(0,h,0)
-f.rotate(angle=0.46, axis = (0,0,0), origin=f.pos)
+f.rotate(angle=0.5, axis = (0,0,1), origin=f.pos)
 
 ## OTHER DEFINITIONS
 accelOfGrav = vector(0,-9.8,0) ## acceleration of gravity
@@ -111,13 +111,13 @@ while True:
             spring.axis = return_axis ##reset to fixed angle
             spring.deflection = vector(0,0,0) ##make sure spring is expanded
 
-        f.acceleration = f.force/f.mass
+        f.acceleration = f.force/(f.mass*h**2)
         f.velocity += f.acceleration * dt ##update f velocity
         f.pos += f.velocity * dt ##update f position
 
-		#f.rot_acc = 
-		#f.rot_velocity =
-		#f.rot_pos = 
+		#f.rot_acc += f.torque/(mass*)
+		#f.rot_vel += f.rot_acc * dt
+		#f.rot_pos += f.rot_vel * dt
 		
         ## ENERGY ACCOUNTING
         K = 0.5 * f.mass * f.velocity.mag**2
