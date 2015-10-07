@@ -8,7 +8,7 @@ r0 = 2 ## meters, relaxed length of spring
 theta0 = math.radians(90) ## free angle
 h = 3 ## meters, initial height of f
 vx0 = 6 ## initial horizontal velocity
-y_max = 3 ## initial max height
+
 
 floor = box(size=(50,.01,2),pos=(0,0,0))
 
@@ -31,6 +31,12 @@ f.velocity = vector(vx0,0,0)
 f.acceleration = vector(0,0,0)
 f.force = vector(0,0,0)
 f.pos = vector(0,h,0)
+
+#parameters
+y_max = 3 ## initial max height
+#boundary conditions
+#state
+
 
 f.current_rot = 0.0
 def rotate(new_rot):
@@ -79,25 +85,9 @@ while True:
             spring.deflection = return_axis.mag*norm(spring.axis) - spring.axis
             change_in_length = spring.deflection.mag - previous_length ## current - previous
             deflection_rate_of_change = change_in_length / tiny_dt
-            
-            
-            ## ENERGY CONTROL LAW
-            energyDifference = energy - energy0
-            energyGain = 100000.0 ##Hz, this is proportional gain
-            energy_error_tolerance = 0.0001
-            if f.velocity.y > 0 and energyDifference < - energy_error_tolerance: ## spring is expanding and we need to add energy
-                extraPower = energyGain * energyDifference
-                extraForce = extraPower / deflection_rate_of_change
-                
-                    
-            elif f.velocity.y <0 and energyDifference > energy_error_tolerance: ##spring is contracting and we need to subtract energy
-                extraPower = energyGain * energyDifference
-                extraForce = extraPower / deflection_rate_of_change
-              
-            else: #no extra power necessary
-                extraForce = 0
+           
 
-            springForce = spring.constant * spring.deflection - extraForce * norm(spring.axis)
+            springForce = spring.constant * spring.deflection
             f.force += springForce ## update force on f
             
         ## FLIGHT PHASE
