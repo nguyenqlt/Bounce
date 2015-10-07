@@ -3,142 +3,192 @@ from visual import *
 from visual.graph import *
 
 
-## INITIAL CONDITIONS
-r0 = 2 ## meters, relaxed length of spring
-theta0 = math.radians(90) ## free angle
-h = 3 ## meters, initial height of f
-vx0 = 6 ## initial horizontal velocity
-y_max = 3 ## initial max height
+# INITIAL CONDITIONS
+# Boundary Conditions
+h = 3  # meters, initial height of f
+vx0 = 6  # initial horizontal velocity
 
-floor = box(size=(50,.01,2),pos=(0,0,0))
+# floor = box(size=(50, .01, 2), pos=(0, 0, 0))
+floors = []
+for i in range(0, 5):
+    if i % 2 == 0:
+        colorz = color.yellow
+    else:
+        colorz = color.white
+    floors.append(
+        box(size=(5, .5, 2), pos=(5 * i, -0.25, 0), color=colorz))
 
-## DEFINE SPRING
-return_axis = vector(r0*math.cos(theta0),r0*math.sin(theta0),0)
-spring = helix(pos=(return_axis.x,h - return_axis.y,0), axis=return_axis, radius=0.6,color=color.yellow)
-spring.constant = 4000 ## N/m
 
-##create a composite object with f
+# create a composite object with f
 
 f = frame()
-## QUADCOPTER
-ellipsoid(frame=f, pos=(0,0,0), size=(3, 1, 3))
-ellipsoid(frame= f, pos=(1.2,0.4,-1.2), size = (1.5, 0.5, 1.5), color = color.red)
-ellipsoid(frame= f, pos=(1.2,0.4,1.2), size = (1.5, 0.5, 1.5), color = color.red)
-ellipsoid(frame= f, pos=(-1.2,0.4,-1.2), size = (1.5, 0.5, 1.5), color = color.red)
-ellipsoid(frame= f, pos=(-1.2,0.4,1.2), size = (1.5, 0.5, 1.5), color = color.red)
-f.mass = 0.5 # kg
-f.velocity = vector(vx0,0,0)
-f.acceleration = vector(0,0,0)
-f.force = vector(0,0,0)
-f.pos = vector(0,h,0)
+# QUADCOPTER
+ellipsoid(frame=f, pos=(0, 0, 0), size=(3, 1, 3))
+ellipsoid(frame=f, pos=(1.2, 0.4, -1.2),
+          size = (1.5, 0.5, 1.5), color = color.red)
+ellipsoid(frame=f, pos=(1.2, 0.4, 1.2), size = (
+    1.5, 0.5, 1.5), color = color.red)
+ellipsoid(frame=f, pos=(-1.2, 0.4, -1.2),
+          size = (1.5, 0.5, 1.5), color = color.red)
+ellipsoid(frame=f, pos=(-1.2, 0.4, 1.2),
+          size = (1.5, 0.5, 1.5), color = color.red)
+f.velocity = vector(vx0, 0, 0)
+f.acceleration = vector(0, 0, 0)
+f.force = vector(0, 0, 0)
+f.pos = vector(0, h, 0)
 
+
+# Parameters
+mass = 0.5  # kg
+r0 = 2  # meters, relaxed length of spring
+theta0 = math.radians(92.95)  # free angle [change me]
+mom_inertia = (mass * (0.1) ** 2)
+gravity = 9.8  # acceleration of gravity
+K_l = 4000  # N/m
+K_o = 0.0001  # Nm / rad [change me]
+
+# State (with initial conditions):
+x = frame()
+x.x = 0.0
+x.y = h
+x.xd = vx0
+x.yd = 0.0
+x.p = 0.0
+x.pd = 0.1 # [change me]
+
+x.contact = False
+x.foot_x = 0.0
+x.foot_y = 0.0
+
+# Memory:
+m = frame()
+m.force_x = 0.0
+m.force_y = 0.0
+m.torque = 0.0
+m.delta_o = 0.0
+m.delta_l = 0.0
+m.l_x = 0.0
+m.l_y = 0.0
+m.o = theta0
+m.gamma = x.p - m.o
+
+
+# Initilize spring graphics
+return_axis = vector(r0 * math.cos(m.gamma), r0 * math.sin(m.gamma), 0)
+spring = helix(pos=(return_axis.x, h + return_axis.y, 0),
+               axis=return_axis, radius=0.6, color=color.yellow)
+
+# Special new internal graphics variable
 f.current_rot = 0.0
+
+counts = 0
+def report_bounce():
+    global counts
+    print "bounced %d times!" % counts
+    counts += 1
+
+
 def rotate(new_rot):
-    f.rotate(angle=(new_rot - f.current_rot), axis = (0,0,1), origin=f.pos)
+    f.rotate(angle=(new_rot - f.current_rot), axis = (0, 0, 1), origin=f.pos)
     f.current_rot = new_rot
-#rotate(0.5)
-	
-f.torque = 0.0
-f.rot_vel = 1.0
-f.rot_pos = 0.0
-mom_inertia = (f.mass * (0.01)**2)
 
-## OTHER DEFINITIONS
-accelOfGrav = vector(0,-9.8,0) ## acceleration of gravity
 
-K0 = 0.5 * f.mass * vx0**2
-Ugrav0 = f.mass * 9.8 * h
-energy0 = K0 + Ugrav0 ## joules
+def norm(x, y):
+    return sqrt(pow(x, 2) + pow(y, 2))
 
-dt = 0.0001
+
+# OTHER DEFINITIONS
+
+
+# K0 = 0.5 * f.mass * vx0**2
+# Ugrav0 = f.mass * 9.8 * h
+# energy0 = K0 + Ugrav0 ## joules
+
+# Solver parameters
+dt = 0.01
 t = 0
-
 tinySteps = 100
-tiny_dt = dt/tinySteps
+tiny_dt = dt / tinySteps
+# spring.previous_deflection=0
 
-## GRAPHING
-#graph1 = gdisplay()
-#energygraph = gcurve(color=color.red)
-#Kgraph = gcurve(color=color.green)
-#Ugravgraph = gcurve(color=color.orange)
-#Uspringgraph = gcurve(color = color.yellow)
-#positiongraph = gcurve(color=color.cyan)
-
-spring.previous_deflection=0
-
+# main physics and graphics loop
 while True:
     rate(100)
-    for i in range(100):
+    # physics only loop:
+    for i in range(tinySteps):
         t += tiny_dt
-        f.force = f.mass * accelOfGrav
-        
-        ## STANCE PHASE
-        if f.pos.y - return_axis.y <= 0.005 :## when spring touches floor
-            previous_length = mag(spring.axis) ## for calcuating rate of deflection
-            spring.axis = f.pos - spring.pos ##update spring length
-            spring.deflection = return_axis.mag*norm(spring.axis) - spring.axis
-            change_in_length = spring.deflection.mag - previous_length ## current - previous
-            deflection_rate_of_change = change_in_length / tiny_dt
-            
-            
-            ## ENERGY CONTROL LAW
-            energyDifference = energy - energy0
-            energyGain = 100000.0 ##Hz, this is proportional gain
-            energy_error_tolerance = 0.0001
-            if f.velocity.y > 0 and energyDifference < - energy_error_tolerance: ## spring is expanding and we need to add energy
-                extraPower = energyGain * energyDifference
-                extraForce = extraPower / deflection_rate_of_change
-                
-                    
-            elif f.velocity.y <0 and energyDifference > energy_error_tolerance: ##spring is contracting and we need to subtract energy
-                extraPower = energyGain * energyDifference
-                extraForce = extraPower / deflection_rate_of_change
-              
-            else: #no extra power necessary
-                extraForce = 0
+        m.force_y = - mass * gravity
+        m.force_x = 0.0
+        m.torque = 0.0
+        # f.force = f.mass * accelOfGrav
 
-            springForce = spring.constant * spring.deflection - extraForce * norm(spring.axis)
-            f.force += springForce ## update force on f
-            
-        ## FLIGHT PHASE
+        # Recalculate foot location:
+        if x.contact:
+            pass
         else:
+            m.o = theta0
+            m.gamma = x.p - m.o
+            m.l_x = r0 * cos(m.gamma)
+            m.l_y = r0 * sin(m.gamma)
+            x.foot_x = x.x + m.l_x
+            x.foot_y = x.y + m.l_y
 
-            ## FREE ANGLE CONTROL LAW
-                                
-            prev_y_max = y_max ## y_max will be stored from previous jump
-            y_max = f.velocity.y ** 2 * (1 / (9.8 * 2))+ f.pos.y ## update y_max to current
-            change_in_y_max = y_max - prev_y_max
-            angle_gain = 0.1
-            epsilon = 0.0001 
+            if x.foot_y <= 0.0:
+                x.foot_y = 0.0
+                x.contact = True
 
-            if abs(change_in_y_max) > epsilon:
-                print "THIS IS BOUNCING"
-                theta0 += - change_in_y_max * angle_gain ## angle increases if y_max is decreasing or angle decreases if y_max increases
-                print "Free angle: " + str(math.degrees(theta0))
-                return_axis = vector(r0*math.cos(theta0),r0*math.sin(theta0),0) ## update return_axis with new angle
+        # STANCE PHASE
+        if x.contact:  # when spring touches floor
+            m.l_x = x.foot_x - x.x
+            m.l_y = x.foot_y - x.y
+            m.gamma = atan2(m.l_y, m.l_x)
+            m.o = x.p - m.gamma
+            m.delta_o = m.o - theta0
 
-            spring.pos = f.pos - return_axis ##update spring position
-            spring.axis = return_axis ##reset to fixed angle
-            spring.deflection = vector(0,0,0) ##make sure spring is expanded
+            m.torque = - K_o * m.delta_o
 
-        f.acceleration = f.force/f.mass
-        f.velocity += f.acceleration * dt ##update f velocity
-        f.pos += f.velocity * dt ##update f position
+            temp_length = norm(m.l_x, m.l_y)
+            m.delta_l = temp_length - r0
 
-        f.rot_acc = f.torque/(mom_inertia)
-        f.rot_vel += f.rot_acc * dt
-        f.rot_pos += f.rot_vel * dt
-        #print "f.rot_acc"
-        rotate(f.rot_pos)
-        ## ENERGY ACCOUNTING
-        K = 0.5 * f.mass * f.velocity.mag**2
-        Ugrav = f.mass * 9.8 * f.pos.y
-        Uspring = 0.5 * spring.constant * spring.deflection.mag**2
-        energy = K + Ugrav + Uspring #calculate current energy
+            fc_x = m.l_x / temp_length * K_l * m.delta_l
+            fc_y = m.l_y / temp_length * K_l * m.delta_l
 
-    ## UPDATE GRAPHS
-   #energygraph.plot(pos=(f.pos.x,energy))
-    #positiongraph.plot(pos=(f.pos.x, f.pos.y))
-    #Kgraph.plot(pos=(f.pos.x,K))
-    #Ugravgraph.plot(pos=(f.pos.x,Ugrav))
-    #Uspringgraph.plot(pos=(f.pos.x,Uspring))
+            ft_x = m.l_y * pow(temp_length, -2) * K_o * m.delta_o
+            ft_y = -m.l_x * pow(temp_length, -2) * K_o * m.delta_o
+
+            # spring.axis = f.pos - spring.pos ##update spring length
+            # spring.deflection = return_axis.mag*norm(spring.axis) - spring.axis
+            # deflection_rate_of_change = change_in_length / tiny_dt
+            if fc_y > 0:
+                m.force_x = fc_x + ft_x
+                m.force_y = fc_y + ft_y - mass * gravity
+            else:
+                report_bounce()
+                m.force_x = 0.0
+                m.force_y = - mass*gravity
+                m.torque = 0.0
+                x.contact = False
+
+        # compute physics loop stuff
+        xdd = m.force_x / mass
+        ydd = m.force_y / mass
+        pdd = m.torque / mom_inertia
+
+        x.xd += xdd * tiny_dt
+        x.yd += ydd * tiny_dt
+        x.pd += pdd * tiny_dt
+
+        x.x += x.xd * tiny_dt
+        x.y += x.yd * tiny_dt
+        x.p += x.pd * tiny_dt
+
+        if x.y < 0.5:
+            exit()
+
+    # update graphics:
+    rotate(x.p)
+    f.pos = (0.0, x.y, 0.0)
+    spring.pos = f.pos
+    spring.axis = (m.l_x, m.l_y, 0.0)
+    for i in range(0, 5):
+        floors[i].pos.x = (-x.x + 5 * i) % 20 - 10
