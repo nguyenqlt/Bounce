@@ -2,11 +2,16 @@ from __future__ import division
 from visual import *
 from visual.graph import *
 
+FLIGHT = 1
+STANCE = 2
+RETRACT = 3
+
 
 # INITIAL CONDITIONS
 # Boundary Conditions
-h = 3  # meters, initial height of f
-vx0 = 6  # initial horizontal velocity
+scale = 1.0
+h = 3*scale  # meters, initial height of f
+vx0 = 6*scale*0  # initial horizontal velocity
 
 # floor = box(size=(50, .01, 2), pos=(0, 0, 0))
 floors = []
@@ -32,20 +37,19 @@ ellipsoid(frame=f, pos=(-1.2, 0.4, -1.2),
           size = (1.5, 0.5, 1.5), color = color.red)
 ellipsoid(frame=f, pos=(-1.2, 0.4, 1.2),
           size = (1.5, 0.5, 1.5), color = color.red)
-f.velocity = vector(vx0, 0, 0)
-f.acceleration = vector(0, 0, 0)
-f.force = vector(0, 0, 0)
+
 f.pos = vector(0, h, 0)
 
 
 # Parameters
 mass = 0.5  # kg
 r0 = 2  # meters, relaxed length of spring
-theta0 = math.radians(92.95)  # free angle [change me]
+theta0 = math.radians(95.95)  # free angle [change me]
 mom_inertia = (mass * (0.1) ** 2)
 gravity = 9.8  # acceleration of gravity
 K_l = 4000  # N/m
-K_o = 0.0001  # Nm / rad [change me]
+K_o = 0.0  # Nm / rad [change me]
+pd0 = 0.0
 
 # State (with initial conditions):
 x = frame()
@@ -54,9 +58,9 @@ x.y = h
 x.xd = vx0
 x.yd = 0.0
 x.p = 0.0
-x.pd = 0.1 # [change me]
+x.pd = pd0 # [change me]
 
-x.contact = False
+x.contact = FLIGHT
 x.foot_x = 0.0
 x.foot_y = 0.0
 
@@ -123,9 +127,7 @@ while True:
         # f.force = f.mass * accelOfGrav
 
         # Recalculate foot location:
-        if x.contact:
-            pass
-        else:
+        if x.contact==FLIGHT or x.contact==RETRACT:
             m.o = theta0
             m.gamma = x.p - m.o
             m.l_x = r0 * cos(m.gamma)
@@ -133,12 +135,16 @@ while True:
             x.foot_x = x.x + m.l_x
             x.foot_y = x.y + m.l_y
 
-            if x.foot_y <= 0.0:
-                x.foot_y = 0.0
-                x.contact = True
+            if x.contact == FLIGHT:
+                if x.foot_y <= 0.0:
+                    x.foot_y = 0.0
+                    x.contact = STANCE
+            elif x.contact == RETRACT:
+                if x.yd<=0:
+                    x.contact = FLIGHT
 
         # STANCE PHASE
-        if x.contact:  # when spring touches floor
+        if x.contact==STANCE:  # when spring touches floor
             m.l_x = x.foot_x - x.x
             m.l_y = x.foot_y - x.y
             m.gamma = atan2(m.l_y, m.l_x)
@@ -167,7 +173,9 @@ while True:
                 m.force_x = 0.0
                 m.force_y = - mass*gravity
                 m.torque = 0.0
-                x.contact = False
+                x.contact = RETRACT
+                if x.yd < 0:
+                    exit()
 
         # compute physics loop stuff
         xdd = m.force_x / mass
@@ -182,7 +190,7 @@ while True:
         x.y += x.yd * tiny_dt
         x.p += x.pd * tiny_dt
 
-        if x.y < 0.5:
+        if x.y < 1.5:
             exit()
 
     # update graphics:
