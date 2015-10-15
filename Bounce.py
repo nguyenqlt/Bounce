@@ -1,6 +1,8 @@
 from __future__ import division
 from visual import *
 from visual.graph import *
+import time
+
 
 
 # INITIAL CONDITIONS
@@ -41,11 +43,20 @@ f.pos = vector(0, h, 0)
 # Parameters
 mass = 0.5  # kg
 r0 = 2  # meters, relaxed length of spring
-theta0 = math.radians(92.95)  # free angle [change me]
+theta0 = math.radians(90)  # free angle [change me]
 mom_inertia = (mass * (0.1) ** 2)
 gravity = 9.8  # acceleration of gravity
 K_l = 4000  # N/m
-K_o = 0.0001  # Nm / rad [change me]
+K_o = 0.0592 # Nm / rad [change me]
+#92.95, 0.05, 0.1 - falls back
+#92.95, 0.06, 0.1 - bounces in place for a while, then forward
+#92.95, 0.075, 0.1 - falls forward
+
+#92.95, 0.0595, 0.1 - falls forward
+#92.95, 0.0595, 0.11 - falls back
+#92.95, 0.0593, 0.1 - falls forward 32.934s
+#92.95, 0.0592, 0.1 - falls back 36.377s
+#92.99, 0.0592, 0.1 - falls forward 28.834s
 
 # State (with initial conditions):
 x = frame()
@@ -55,6 +66,13 @@ x.xd = vx0
 x.yd = 0.0
 x.p = 0.0
 x.pd = 0.1 # [change me]
+# 92.95, 0.0001, 0.01 - 1 minute 54 secs
+#92.93, 0.00092, 0 - ball bounces very fast / high in air 3 mins 4 secs
+#92.89, 0.00015, 0.04 - 30.669 secs
+
+#Dimensionless parameters
+h_pi = h/r0
+v_pi = r0/(sqrt(2*r0*gravity))
 
 x.contact = False
 x.foot_x = 0.0
@@ -81,11 +99,11 @@ spring = helix(pos=(return_axis.x, h + return_axis.y, 0),
 # Special new internal graphics variable
 f.current_rot = 0.0
 
-counts = 0
-def report_bounce():
-    global counts
-    print "bounced %d times!" % counts
-    counts += 1
+#counts = 0
+#def report_bounce():
+#    global counts
+#    print "bounced %d times!" % counts
+#    counts += 1
 
 
 def rotate(new_rot):
@@ -163,11 +181,20 @@ while True:
                 m.force_x = fc_x + ft_x
                 m.force_y = fc_y + ft_y - mass * gravity
             else:
-                report_bounce()
+                #report_bounce()
                 m.force_x = 0.0
                 m.force_y = - mass*gravity
                 m.torque = 0.0
                 x.contact = False
+				
+                result = h - m.l_y - (0.5*x.yd**2/gravity)
+			
+				# print stuff
+                print "velocity error %.4f" %(x.xd-vx0)
+                print "y error %.4f" %result
+                print "p error %.4f" %(-x.p + (x.pd*(x.yd)/gravity))
+				
+                exit()
 
         # compute physics loop stuff
         xdd = m.force_x / mass
@@ -182,8 +209,8 @@ while True:
         x.y += x.yd * tiny_dt
         x.p += x.pd * tiny_dt
 
-        if x.y < 0.5:
-            exit()
+        #if x.y < 0.5:
+        #    exit()
 
     # update graphics:
     rotate(x.p)

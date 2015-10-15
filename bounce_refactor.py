@@ -64,8 +64,7 @@ class SLIP_Physics(object):
                  spring_monitor.deflection)
         x_double_dot = 1.0 / self.params.mass * spring_monitor.axis.x * force
         # negative because the axis points from COM towards the foot.
-        y_double_dot = (
-            self.params.gravity + spring_monitor.axis.y * force / self.params.mass)
+        y_double_dot = (self.params.gravity + spring_monitor.axis.y * force / self.params.mass)
 
         state = state + StateVector(
             #"t", "x", "y", "x_dot", "y_dot"
@@ -148,11 +147,10 @@ class AngleController(object):
             print "Jump height change: " + str(change_in_y_max)
             # angle increases if y_max is decreasing or angle decreases if
             # y_max increases
-            self.theta_0 = math.radians(
-                87.75) - change_in_y_max * self.angle_gain
-            if self.theta_0 > math.radians(89.0):
+            self.theta_0 = math.radians(87.75) - change_in_y_max * self.angle_gain
+            if self.theta_0>math.radians(89.0):
                 self.theta_0 = math.radians(89.0)
-            if self.theta_0 < math.radians(70.0):
+            if self.theta_0<math.radians(70.0):
                 self.theta_0 = math.radians(70.0)
             print "Free angle: " + str(math.degrees(self.theta_0))
 
@@ -237,14 +235,13 @@ class SLIPRunnerGraphics(object):
                                 axis=vis.vector(1.0, 1.0, 1.0), radius=0.6, color=vis.color.yellow)
         self.ball = vis.sphere(
             pos=(0.0, 0.0, 0.0), radius=1, make_trail = True)
-        self.floors = []
-        for i in range(0, 5):
-            if i % 2 == 0:
-                color = vis.color.yellow
+        self.floors=[]
+        for i in range(0,5):
+            if i%2==0:
+                color=vis.color.yellow
             else:
-                color = vis.color.white
-            self.floors.append(
-                vis.box(size=(5, .5, 2), pos=(5 * i, 0, 0), color=color))
+                color= vis.color.white
+            self.floors.append(vis.box(size=(5, .01, 2), pos=(5*i, 0, 0),color=color))
 
     def __call__(self, state, dstate):
         """Position the objects according to the state and dstate."""
@@ -252,31 +249,30 @@ class SLIPRunnerGraphics(object):
         self.spring.axis = (
             state.x - dstate.x_foot, state.y - dstate.y_foot, 0.0)
         self.ball.pos = (0.0, state.y, 0.0)
-        for i in range(0, 5):
-            self.floors[i].pos.x = (-state.x + 5 * i) % 20 - 10
+        for i in range(0,5):
+            self.floors[i].pos.x = (-state.x+5*i)%20-10
 
 
-class SLIPGraphs(object):
+#class SLIPGraphs(object):
 
-    """A class to handle the graphs."""
+   # """A class to handle the graphs."""
 
-    def __init__(self):
-        graph1 = vg.gdisplay()
-        self.energygraph = vg.gcurve(color=vis.color.red)
-        self.Kgraph = vg.gcurve(color=vis.color.green)
-        self.Ugravgraph = vg.gcurve(color=vis.color.orange)
-        self.Uspringgraph = vg.gcurve(color=vis.color.yellow)
-        self.positiongraph = vg.gcurve(color=vis.color.cyan)
-        self.velocitygraph = vg.gcurve(color=vis.color.blue)
+ #   def __init__(self):
+  #      graph1 = vg.gdisplay()
+   #     self.energygraph = vg.gcurve(color=vis.color.red)
+    #    self.Kgraph = vg.gcurve(color=vis.color.green)
+     #   self.Ugravgraph = vg.gcurve(color=vis.color.orange)
+      #  self.Uspringgraph = vg.gcurve(color=vis.color.yellow)
+       # self.positiongraph = vg.gcurve(color=vis.color.cyan)
+        #self.velocitygraph = vg.gcurve(color=vis.color.blue)
 
-    def __call__(self, state, energy_result):
-        self.energygraph.plot(pos=(state.t, energy_result.total_energy))
-        self.positiongraph.plot(pos=(state.t, state.y))
-        self.Kgraph.plot(pos=(state.t, energy_result.kinetic_energy))
-        self.Ugravgraph.plot(pos=(state.t, energy_result.grav_potential))
-        self.Uspringgraph.plot(
-            pos=(state.t, energy_result.spring_potential))
-        self.velocitygraph.plot(pos=(state.t, state.x_dot))
+   # def __call__(self, state, energy_result):
+    #    self.energygraph.plot(pos=(state.t, energy_result.total_energy))
+     #   self.positiongraph.plot(pos=(state.t, state.y))
+      #  self.Kgraph.plot(pos=(state.t, energy_result.kinetic_energy))
+       # self.Ugravgraph.plot(pos=(state.t, energy_result.grav_potential))
+        #self.Uspringgraph.plot(pos=(state.t, energy_result.spring_potential))
+        #self.velocitygraph.plot(pos=(state.t, state.x_dot))
 
 
 def main(iters=1000000):
@@ -311,9 +307,11 @@ def main(iters=1000000):
     energy0 = K0 + Ugrav0  # joules
     energy_controller = EnergyController(gain=10.0, desired=energy0)
 
-    graphics = SLIPRunnerGraphics()
+    graphics = SLIPRunnerGraphics()  
 
-    # graphs_object = SLIPGraphs()
+    graphs_object = SLIPGraphs()
+	
+	
 
     state = StateVector(*init_state)  # copy initial state
     dstate = DiscreteStateVector(*init_dstate)
@@ -339,7 +337,7 @@ def main(iters=1000000):
                 state, dstate = physics.flight_update(
                     state, dstate, free_angle)
 
-        # graphs_object(state, energy_result)
+        graphs_object(state, energy_result)
         graphics(state, dstate)
 
 
