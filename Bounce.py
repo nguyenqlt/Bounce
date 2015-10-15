@@ -192,6 +192,7 @@ while True:
 				# print stuff
                 print "velocity error %.4f" %(x.xd-vx0)
                 print "y error %.4f" %result
+                print "pd error %.4f" %(0.01 - x.pd) #not sure how to subtract the original x.pd above by the new x.pd below
                 print "p error %.4f" %(-x.p + (x.pd*(x.yd)/gravity))
 				
                 exit()
