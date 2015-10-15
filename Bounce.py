@@ -10,8 +10,10 @@ RETRACT = 3
 # INITIAL CONDITIONS
 # Boundary Conditions
 scale = 1.0
-h = 3*scale  # meters, initial height of f
-vx0 = 6*scale*0  # initial horizontal velocity
+h = 3.0  # meters, initial height of f
+vx0 = 6.0  # initial horizontal velocity
+pd0 = 0.00
+p0=0.09
 
 # floor = box(size=(50, .01, 2), pos=(0, 0, 0))
 floors = []
@@ -44,12 +46,11 @@ f.pos = vector(0, h, 0)
 # Parameters
 mass = 0.5  # kg
 r0 = 2  # meters, relaxed length of spring
-theta0 = math.radians(95.95)  # free angle [change me]
+theta0 = math.radians(90.0)  # free angle [change me]
 mom_inertia = (mass * (0.1) ** 2)
 gravity = 9.8  # acceleration of gravity
 K_l = 4000  # N/m
-K_o = 0.0  # Nm / rad [change me]
-pd0 = 0.0
+K_o = 0.02  # Nm / rad [change me]
 
 # State (with initial conditions):
 x = frame()
@@ -57,8 +58,8 @@ x.x = 0.0
 x.y = h
 x.xd = vx0
 x.yd = 0.0
-x.p = 0.0
-x.pd = pd0 # [change me]
+x.p = p0
+x.pd = pd0  # [change me]
 
 x.contact = FLIGHT
 x.foot_x = 0.0
@@ -86,6 +87,8 @@ spring = helix(pos=(return_axis.x, h + return_axis.y, 0),
 f.current_rot = 0.0
 
 counts = 0
+
+
 def report_bounce():
     global counts
     print "bounced %d times!" % counts
@@ -99,6 +102,27 @@ def rotate(new_rot):
 
 def norm(x, y):
     return sqrt(pow(x, 2) + pow(y, 2))
+
+# globals used by save and print state:
+apex_state = tuple()
+
+
+def save_state(x):
+    global apex_state
+    apex_velocity = x.xd
+    apex_height = x.y + 0.5 * x.yd ** 2 / gravity
+    apex_angular_rate = x.pd
+    apex_angle = x.p + x.pd * x.yd / gravity
+    apex_state = (apex_height, apex_velocity, apex_angle, apex_angular_rate)
+    return apex_state
+
+def print_state():
+    global apex_state
+    os = apex_state
+    ns =save_state(x)
+    print "Height change %.3f, velocity change %.3f, angle change %.4f, rate change %.4f"%(
+        ns[0]-os[0], ns[1]-os[1], ns[2]-os[2], ns[3]-os[3])
+
 
 
 # OTHER DEFINITIONS
@@ -127,7 +151,7 @@ while True:
         # f.force = f.mass * accelOfGrav
 
         # Recalculate foot location:
-        if x.contact==FLIGHT or x.contact==RETRACT:
+        if x.contact == FLIGHT or x.contact == RETRACT:
             m.o = theta0
             m.gamma = x.p - m.o
             m.l_x = r0 * cos(m.gamma)
@@ -139,12 +163,13 @@ while True:
                 if x.foot_y <= 0.0:
                     x.foot_y = 0.0
                     x.contact = STANCE
+                    save_state(x)
             elif x.contact == RETRACT:
-                if x.yd<=0:
+                if x.yd <= 0:
                     x.contact = FLIGHT
 
         # STANCE PHASE
-        if x.contact==STANCE:  # when spring touches floor
+        if x.contact == STANCE:  # when spring touches floor
             m.l_x = x.foot_x - x.x
             m.l_y = x.foot_y - x.y
             m.gamma = atan2(m.l_y, m.l_x)
@@ -171,9 +196,10 @@ while True:
             else:
                 report_bounce()
                 m.force_x = 0.0
-                m.force_y = - mass*gravity
+                m.force_y = - mass * gravity
                 m.torque = 0.0
                 x.contact = RETRACT
+                print_state()
                 if x.yd < 0:
                     exit()
 
