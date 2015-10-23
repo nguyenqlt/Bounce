@@ -10,10 +10,14 @@ RETRACT = 3
 # INITIAL CONDITIONS
 # Boundary Conditions
 scale = 1.0
-h = 3.0  # meters, initial height of f
-vx0 = 6.0  # initial horizontal velocity
-pd0 = 0.00
-p0=0.09
+adjustment1 = [0.5623, -0.050000000000001155, 12.30500000000001, 27.773000000000003]
+adjustment2 = [0.8709999999999996, 0.3009999999999957, -2.4229999999999974, -3.929999999999989]
+scale1 = -0.002
+scale2 = -0.000001
+h = 3.0+scale1*adjustment1[0]+scale2*adjustment2[0]
+vx0 = 5.0+scale1*adjustment1[1]+scale2*adjustment2[1]
+pd0 = 0.00+scale1*adjustment1[2]+scale2*adjustment2[2]
+p0=0.1+scale1*adjustment1[3]+scale2*adjustment2[3]
 
 # floor = box(size=(50, .01, 2), pos=(0, 0, 0))
 floors = []
@@ -50,7 +54,7 @@ theta0 = math.radians(90.0)  # free angle [change me]
 mom_inertia = (mass * (0.1) ** 2)
 gravity = 9.8  # acceleration of gravity
 K_l = 4000  # N/m
-K_o = 0.02  # Nm / rad [change me]
+K_o = 0.2  # Nm / rad [change me]
 
 # State (with initial conditions):
 x = frame()
@@ -122,6 +126,8 @@ def print_state():
     ns =save_state(x)
     print "Height change %.3f, velocity change %.3f, angle change %.4f, rate change %.4f"%(
         ns[0]-os[0], ns[1]-os[1], ns[2]-os[2], ns[3]-os[3])
+    cost = pow(pow(ns[0]-os[0],2)+10.*pow(ns[1]-os[1],2)+20.0*pow(ns[2]-os[2],2)+400*pow(ns[3]-os[3],2), 0.5)
+    print "Cost %.5f"%cost
 
 
 
@@ -200,6 +206,7 @@ while True:
                 m.torque = 0.0
                 x.contact = RETRACT
                 print_state()
+                # exit() # for now
                 if x.yd < 0:
                     exit()
 
