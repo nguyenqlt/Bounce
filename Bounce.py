@@ -3,13 +3,14 @@ from visual import *
 from visual.graph import *
 import time
 
-
-
 # INITIAL CONDITIONS
 # Boundary Conditions
+adjustment1 = 
+scale1 =
 h = 3.0 # meters, initial height of f
-vx0 = 6.0  # initial horizontal velocity
-#3, 6
+vx0 = 7.0  # initial horizontal velocity
+p0 = 0.02
+pd0 = 0.1
 
 # floor = box(size=(50, .01, 2), pos=(0, 0, 0))
 floors = []
@@ -47,7 +48,7 @@ theta0 = math.radians(90)  # free angle [change me]
 mom_inertia = (mass * (0.1) ** 2)
 gravity = 9.8  # acceleration of gravity
 K_l = 4000  # N/m
-K_o = 170 # Nm / rad [change me]
+K_o = 0.2 # Nm / rad [change me]
 
 
 #changing k_o = pd error , slight p error
@@ -61,9 +62,7 @@ x.x = 0.0
 x.y = h
 x.xd = vx0
 x.yd = 0.0
-p0 = 0.019
 x.p = p0
-pd0 = 0.03 # [change me]
 x.pd = pd0 # 
 
 #0.0005, 0.11365
@@ -194,6 +193,8 @@ while True:
                 print "pd error %.4f" %(pd0 - x.pd) 
                 print "p error %.4f" %(p0 - x.p + ((x.pd*x.yd)/gravity))
 				
+                cost = sqrt((x.xd-vx0)**2 + 20*result**2 + 100*(pd0 - x.pd)**2 + 200*(p0 - x.p + ((x.pd*x.yd)/gravity))**2)
+                print "cost function %.4f" %cost
                 exit()
 
         # compute physics loop stuff
@@ -212,7 +213,7 @@ while True:
         if x.y < 0.5:
             exit()
 
-    # update graphics:
+    #update graphics:
     rotate(x.p)
     f.pos = (0.0, x.y, 0.0)
     spring.pos = f.pos
