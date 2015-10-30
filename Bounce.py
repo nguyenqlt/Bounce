@@ -229,6 +229,7 @@ while True:
     #update graphics:
     rotate(x.p)
     f.pos = (0.0, x.y, 0.0)
+    #varr = arrow(pos=f.pos, axis=(x.xd, x.yd, 0), color=color.yellow)
     spring.pos = f.pos
     spring.axis = (m.l_x, m.l_y, 0.0)
     for i in range(0, 5):
