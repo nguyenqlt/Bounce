@@ -5,23 +5,22 @@ import time
 
 # INITIAL CONDITIONS
 # Boundary Conditions
-adjustment1 = [0.3049999999999997, 0.10399999999999965, -4.0000000000000036, 2.5999999999999357]
-scale1 = 0.001
-adjustment2 = [0.22999999999999687, 0.12000000000000899, -1.5000000000000568, 3.200000000000003]
-scale2 = -0.12
-adjustment3 = [-0.550000000000006, 0.032999999999999696, 13.799999999999923, 6.49999999999995]
-scale3 = -0.001
-adjustment4 =[-5.39999999999996, 0.17000000000000348, -9.899999999999908, -1.3999999999999568]
-scale4 = -0.00002
-h = 3.0 + adjustment1[0]*scale1 + adjustment2[0]*scale2 + adjustment3[0]*scale3 + adjustment4[0]*scale4  #meters, initial height of f
-vx0 = 7.0 + adjustment1[1]*scale1+ adjustment2[1]*scale2 + adjustment3[1]*scale3  + adjustment4[1]*scale4     #initial horizontal velocity
-p0 = 0.02 + adjustment1[2]*scale1+ adjustment2[2]*scale2 + adjustment3[2]*scale3  + adjustment4[2]*scale4
-pd0 = 0.1 + adjustment1[3]*scale1+ adjustment2[3]*scale2 + adjustment3[3]*scale3  + adjustment4[3]*scale4
+adjustment1 = [0.7250000000000001, 0.0262, 18.000000000000014, 8.399999999999963]
+scale1 = -0.0004
+adjustment2 = [-0.18000000000000238, 0.0990000000000002, 3.7000000000000366, 18.000000000000238]
+scale2 = -0.00012
+#adjustment3 = [0.15800000000000036, 0.14600000000000168, -0.19999999999997797, 0.29999999999996696]
+#scale3 = -0.05
+#adjustment4 =[0.23999999999999577, 0.09999999999998899, 2.7999999999999137, 1.7000000000000348]
+#scale4 = 0.0
+h = 3.0 + adjustment1[0]*scale1  + adjustment2[0]*scale2 #+ adjustment3[0]*scale3 + adjustment4[0]*scale4  #meters, initial height of f
+vx0 = 6.5  + adjustment1[1]*scale1 + adjustment2[1]*scale2 #+ adjustment3[1]*scale3 + adjustment4[1]*scale4     #initial horizontal velocity
+p0 = 0.02 + adjustment1[2]*scale1  + adjustment2[2]*scale2 #+ adjustment3[2]*scale3 + adjustment4[2]*scale4
+pd0 = 0.1 + adjustment1[3]*scale1 + adjustment2[3]*scale2 #+ adjustment3[3]*scale3 + adjustment4[3]*scale4
 
-#adjustment1 = 1.0286 to 1.0204
-#adjustment2 = 1.0204 to 0.9130
-#adjustment3 = 0.9130 to 0.8210
-#adjustment4 = 0.8210 to 0.8187
+#adjustment1 = 1.0499 to 0.9574
+
+
 
 
 # floor = box(size=(50, .01, 2), pos=(0, 0, 0))
@@ -52,6 +51,7 @@ f.velocity = vector(vx0, 0, 0)
 f.acceleration = vector(0, 0, 0)
 f.force = vector(0, 0, 0)
 f.pos = vector(0, h, 0)
+
 
 # Parameters
 mass = 0.5  # kg
@@ -205,10 +205,9 @@ while True:
                 print "pd error %.4f" %(pd0 - x.pd) 
                 print "p error %.4f" %(p0 - x.p + ((x.pd*x.yd)/gravity))
 				
-                cost = sqrt((x.xd-vx0)**2 + 20*result**2 + 100*(pd0 - x.pd)**2 + 200*(p0 - x.p + ((x.pd*x.yd)/gravity))**2)
-                #important to weight it differently or else you barely get results
+                cost = sqrt((x.xd-vx0)**2 + 50*result**2 + 100*(pd0 - x.pd)**2 + 200*(p0 - x.p + ((x.pd*x.yd)/gravity))**2)
                 print "cost function %.4f" %cost
-                #exit()
+                exit()
 
         # compute physics loop stuff
         xdd = m.force_x / mass
@@ -229,6 +228,7 @@ while True:
     #update graphics:
     rotate(x.p)
     f.pos = (0.0, x.y, 0.0)
+    #varr = arrow(pos=f.pos, axis=(x.xd, x.yd, x.pd), color=color.yellow)
     spring.pos = f.pos
     spring.axis = (m.l_x, m.l_y, 0.0)
     for i in range(0, 5):

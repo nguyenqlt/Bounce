@@ -10,18 +10,18 @@ scale1 = 0.001
 adjustment2 = [0.22999999999999687, 0.12000000000000899, -1.5000000000000568, 3.200000000000003]
 scale2 = -0.12
 adjustment3 = [-0.550000000000006, 0.032999999999999696, 13.799999999999923, 6.49999999999995]
-scale3 = -0.001
-adjustment4 =[-5.39999999999996, 0.17000000000000348, -9.899999999999908, -1.3999999999999568]
-scale4 = -0.00002
+scale3 = -0.05
+adjustment4 =[0.23999999999999577, 0.09999999999998899, 2.7999999999999137, 1.7000000000000348]
+scale4 = -0.0009
 h = 3.0 + adjustment1[0]*scale1 + adjustment2[0]*scale2 + adjustment3[0]*scale3 + adjustment4[0]*scale4  #meters, initial height of f
-vx0 = 7.0 + adjustment1[1]*scale1+ adjustment2[1]*scale2 + adjustment3[1]*scale3  + adjustment4[1]*scale4     #initial horizontal velocity
-p0 = 0.02 + adjustment1[2]*scale1+ adjustment2[2]*scale2 + adjustment3[2]*scale3  + adjustment4[2]*scale4
-pd0 = 0.1 + adjustment1[3]*scale1+ adjustment2[3]*scale2 + adjustment3[3]*scale3  + adjustment4[3]*scale4
+vx0 = 7.0 + adjustment1[1]*scale1+ adjustment2[1]*scale2 + adjustment3[1]*scale3 + adjustment4[1]*scale4     #initial horizontal velocity
+p0 = 0.02 + adjustment1[2]*scale1+ adjustment2[2]*scale2 + adjustment3[2]*scale3 + adjustment4[2]*scale4
+pd0 = 0.1+ adjustment1[3]*scale1+ adjustment2[3]*scale2 + adjustment3[3]*scale3# + adjustment4[3]*scale4
 
 #adjustment1 = 1.0286 to 1.0204
 #adjustment2 = 1.0204 to 0.9130
-#adjustment3 = 0.9130 to 0.8210
-#adjustment4 = 0.8210 to 0.8187
+#adjustment3 = 0.9130
+#adjustment4 = 
 
 
 # floor = box(size=(50, .01, 2), pos=(0, 0, 0))
@@ -208,7 +208,7 @@ while True:
                 cost = sqrt((x.xd-vx0)**2 + 20*result**2 + 100*(pd0 - x.pd)**2 + 200*(p0 - x.p + ((x.pd*x.yd)/gravity))**2)
                 #important to weight it differently or else you barely get results
                 print "cost function %.4f" %cost
-                #exit()
+                exit()
 
         # compute physics loop stuff
         xdd = m.force_x / mass
