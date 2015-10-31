@@ -1,6 +1,7 @@
 from __future__ import division
 from visual import *
 from visual.graph import *
+<<<<<<< HEAD
 import time
 
 # INITIAL CONDITIONS
@@ -23,6 +24,25 @@ pd0 = 0.1 + adjustment1[3]*scale1+ adjustment2[3]*scale2 + adjustment3[3]*scale3
 #adjustment3 = 0.9130 to 0.8210
 #adjustment4 = 0.8210 to 0.8187
 
+=======
+
+FLIGHT = 1
+STANCE = 2
+RETRACT = 3
+
+
+# INITIAL CONDITIONS
+# Boundary Conditions
+scale = 1.0
+adjustment1 = [0.5623, -0.050000000000001155, 12.30500000000001, 27.773000000000003]
+adjustment2 = [0.8709999999999996, 0.3009999999999957, -2.4229999999999974, -3.929999999999989]
+scale1 = -0.002
+scale2 = -0.000001
+h = 3.0+scale1*adjustment1[0]+scale2*adjustment2[0]
+vx0 = 5.0+scale1*adjustment1[1]+scale2*adjustment2[1]
+pd0 = 0.00+scale1*adjustment1[2]+scale2*adjustment2[2]
+p0=0.1+scale1*adjustment1[3]+scale2*adjustment2[3]
+>>>>>>> origin/dev
 
 # floor = box(size=(50, .01, 2), pos=(0, 0, 0))
 floors = []
@@ -48,14 +68,13 @@ ellipsoid(frame=f, pos=(-1.2, 0.4, -1.2),
           size = (1.5, 0.5, 1.5), color = color.red)
 ellipsoid(frame=f, pos=(-1.2, 0.4, 1.2),
           size = (1.5, 0.5, 1.5), color = color.red)
-f.velocity = vector(vx0, 0, 0)
-f.acceleration = vector(0, 0, 0)
-f.force = vector(0, 0, 0)
+
 f.pos = vector(0, h, 0)
 
 # Parameters
 mass = 0.5  # kg
 r0 = 2  # meters, relaxed length of spring
+<<<<<<< HEAD
 theta0 = math.radians(90)  # free angle [change me]
 mom_inertia = (mass * (0.1) ** 2)
 gravity = 9.8  # acceleration of gravity
@@ -67,6 +86,13 @@ K_o = 0.2 # Nm / rad [change me]
 #changing p0 = small changes = change v and y error a lot
 #changing pd0 = velocity and y error change and p error
 #how to change both to tweak it?	
+=======
+theta0 = math.radians(90.0)  # free angle [change me]
+mom_inertia = (mass * (0.1) ** 2)
+gravity = 9.8  # acceleration of gravity
+K_l = 4000  # N/m
+K_o = 0.2  # Nm / rad [change me]
+>>>>>>> origin/dev
 
 # State (with initial conditions):
 x = frame()
@@ -75,6 +101,7 @@ x.y = h
 x.xd = vx0
 x.yd = 0.0
 x.p = p0
+<<<<<<< HEAD
 x.pd = pd0 # 
 
 #0.0005, 0.11365
@@ -83,8 +110,11 @@ x.pd = pd0 #
 #Dimensionless parameters
 h_pi = h/r0
 v_pi = r0/(sqrt(2*r0*gravity))
+=======
+x.pd = pd0  # [change me]
+>>>>>>> origin/dev
 
-x.contact = False
+x.contact = FLIGHT
 x.foot_x = 0.0
 x.foot_y = 0.0
 
@@ -109,7 +139,13 @@ spring = helix(pos=(return_axis.x, h + return_axis.y, 0),
 # Special new internal graphics variable
 f.current_rot = 0.0
 
+<<<<<<< HEAD
 counts = 1
+=======
+counts = 0
+
+
+>>>>>>> origin/dev
 def report_bounce():
     global counts
     print "bounced %d times!" % counts
@@ -123,6 +159,29 @@ def rotate(new_rot):
 
 def norm(x, y):
     return sqrt(pow(x, 2) + pow(y, 2))
+
+# globals used by save and print state:
+apex_state = tuple()
+
+
+def save_state(x):
+    global apex_state
+    apex_velocity = x.xd
+    apex_height = x.y + 0.5 * x.yd ** 2 / gravity
+    apex_angular_rate = x.pd
+    apex_angle = x.p + x.pd * x.yd / gravity
+    apex_state = (apex_height, apex_velocity, apex_angle, apex_angular_rate)
+    return apex_state
+
+def print_state():
+    global apex_state
+    os = apex_state
+    ns =save_state(x)
+    print "Height change %.3f, velocity change %.3f, angle change %.4f, rate change %.4f"%(
+        ns[0]-os[0], ns[1]-os[1], ns[2]-os[2], ns[3]-os[3])
+    cost = pow(pow(ns[0]-os[0],2)+10.*pow(ns[1]-os[1],2)+20.0*pow(ns[2]-os[2],2)+400*pow(ns[3]-os[3],2), 0.5)
+    print "Cost %.5f"%cost
+
 
 
 # OTHER DEFINITIONS
@@ -151,9 +210,7 @@ while True:
         # f.force = f.mass * accelOfGrav
 
         # Recalculate foot location:
-        if x.contact:
-            pass
-        else:
+        if x.contact == FLIGHT or x.contact == RETRACT:
             m.o = theta0
             m.gamma = x.p - m.o
             m.l_x = r0 * cos(m.gamma)
@@ -161,12 +218,17 @@ while True:
             x.foot_x = x.x + m.l_x
             x.foot_y = x.y + m.l_y
 
-            if x.foot_y <= 0.0:
-                x.foot_y = 0.0
-                x.contact = True
+            if x.contact == FLIGHT:
+                if x.foot_y <= 0.0:
+                    x.foot_y = 0.0
+                    x.contact = STANCE
+                    save_state(x)
+            elif x.contact == RETRACT:
+                if x.yd <= 0:
+                    x.contact = FLIGHT
 
         # STANCE PHASE
-        if x.contact:  # when spring touches floor
+        if x.contact == STANCE:  # when spring touches floor
             m.l_x = x.foot_x - x.x
             m.l_y = x.foot_y - x.y
             m.gamma = atan2(m.l_y, m.l_x)
@@ -193,8 +255,9 @@ while True:
             else:
                 report_bounce()
                 m.force_x = 0.0
-                m.force_y = - mass*gravity
+                m.force_y = - mass * gravity
                 m.torque = 0.0
+<<<<<<< HEAD
                 x.contact = False
 				
                 result = h - x.y - ((0.5*x.yd**2)/gravity)
@@ -209,6 +272,13 @@ while True:
                 #important to weight it differently or else you barely get results
                 print "cost function %.4f" %cost
                 #exit()
+=======
+                x.contact = RETRACT
+                print_state()
+                # exit() # for now
+                if x.yd < 0:
+                    exit()
+>>>>>>> origin/dev
 
         # compute physics loop stuff
         xdd = m.force_x / mass
@@ -223,7 +293,7 @@ while True:
         x.y += x.yd * tiny_dt
         x.p += x.pd * tiny_dt
 
-        if x.y < 0.5:
+        if x.y < 1.5:
             exit()
 
     #update graphics:
