@@ -60,21 +60,8 @@ if GRAPHICS:
 else:
     f = None
 
-
 # INITIAL CONDITIONS
 # Boundary Conditions
-adjustment1 = [0.3049999999999997, 0.10399999999999965, -
-               4.0000000000000036, 2.5999999999999357]
-scale1 = 0.001
-adjustment2 = [0.22999999999999687, 0.12000000000000899, -
-               1.5000000000000568, 3.200000000000003]
-scale2 = -0.12
-adjustment3 = [-0.550000000000006, 0.032999999999999696,
-               13.799999999999923, 6.49999999999995]
-scale3 = -0.001
-adjustment4 = [-5.39999999999996, 0.17000000000000348, -
-               9.899999999999908, -1.3999999999999568]
-scale4 = -0.00002
 h = 2.973363  # meters, initial height of f
 vx0 = 6.9856676  # initial horizontal velocity
 p0 = 0.182398
@@ -101,7 +88,7 @@ theta_contact = math.radians(90)
 mom_inertia = (mass * (0.1) ** 2)
 gravity = 9.8  # acceleration of gravity
 K_l = 400  # N/m
-K_o = 0.2  # Nm / rad [change me]
+K_o = 0.1 # Nm / rad [change me]
 
 
 # changing k_o = pd error , slight p error
@@ -302,7 +289,7 @@ params = np.array([h, vx0,  pd0, theta_air, theta_contact])
 print params
 
 
-def get_gradient(params, scale=0.005):
+def get_gradient(params, scale=0.001):
     # scale = 0.005
     old_value = run_sim(params)
     gradient = []
@@ -316,16 +303,16 @@ def get_gradient(params, scale=0.005):
     return np.array(gradient)
 
 
-params = np.array([3.15137388 , 7.16348663,   -0.01344186 , 1.37993469 , 1.57083067])
+params = np.array([3.17613089069,7.18778575799,-0.00779840611335,1.38233540922,1.57087587198])
 
-# run_sim(params, False, stop_at_apex=True)
-# print params
+
+#print params
 # exit()
 
 for i in range(0, 200):
     print params
-    grad = get_gradient(params, scale = 0.000001)
-    delta = -grad * 0.000002
+    grad = get_gradient(params, scale = 0.0000001)
+    delta = -grad * 0.000001
     params += delta
     print delta
     string = "params = np.array(["+",".join([str(p) for p in params])+"])"
@@ -344,4 +331,7 @@ for i in range(0, 200):
 # 92.93, 0.00092, 0 - ball bounces very fast / high in air 3 mins 4 secs
 # 92.89, 0.00015, 0.04 - 30.669 secs
 
-# [2.98270406  6.99535711  0.17750009 - 0.3059267   1.400896    1.57183688]
+
+#params = np.array([3.18994768009,7.20235479284,-0.00963917274952,1.39935049585,1.57076188074]) for k_l = 500 (0.0003 cost function) 
+#params = np.array([3.17668374201,7.18850217025,-0.0786962870327,1.34667502859,1.57141426143]) for k_o = 1
+#params = np.array([3.16639408661,7.17722284657,-0.020173195117,1.34934601458,1.57075573497]) for k_l = 300 (0.0003)
