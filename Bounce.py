@@ -88,7 +88,7 @@ theta_contact = math.radians(90)
 mom_inertia = (mass * (0.1) ** 2)
 gravity = 9.8  # acceleration of gravity
 K_l = 400  # N/m
-K_o = 0.1 # Nm / rad [change me]
+K_o = 1 # Nm / rad [change me]
 
 
 # changing k_o = pd error , slight p error
@@ -289,7 +289,7 @@ params = np.array([h, vx0,  pd0, theta_air, theta_contact])
 print params
 
 
-def get_gradient(params, scale=0.001):
+def get_gradient(params, scale=0.005):
     # scale = 0.005
     old_value = run_sim(params)
     gradient = []
@@ -303,14 +303,14 @@ def get_gradient(params, scale=0.001):
     return np.array(gradient)
 
 
-params = np.array([3.17515209752,7.18678709533,-0.00652406796842,1.38286778214,1.57080788872])
+params = np.array([3.17668374201,7.18850217025,-0.0786962870327,1.34667502859,1.57141426143])
 
 #print params
 # exit()
 
 for i in range(0, 200):
     print params
-    grad = get_gradient(params, scale = 0.0000001)
+    grad = get_gradient(params, scale = 0.00000001)
     delta = -grad * 0.000001
     params += delta
     print delta

@@ -1,0 +1,132 @@
+@@ -7,8 +7,9 @@ import time
+
+# INITIAL CONDITIONS
+# Boundary Conditions
+h = 3  # meters, initial height of f
+vx0 = 6  # initial horizontal velocity
+h = 3.0 # meters, initial height of f
+vx0 = 6.0  # initial horizontal velocity
+#3, 6
+
+# floor = box(size=(50, .01, 2), pos=(0, 0, 0))
+floors = []
+@@ -39,7 +40,6 @@ f.acceleration = vector(0, 0, 0)
+f.force = vector(0, 0, 0)
+f.pos = vector(0, h, 0)
+
+
+# Parameters
+mass = 0.5  # kg
+r0 = 2  # meters, relaxed length of spring
+@@ -47,16 +47,13 @@ theta0 = math.radians(90)  # free angle [change me]
+mom_inertia = (mass * (0.1) ** 2)
+gravity = 9.8  # acceleration of gravity
+K_l = 4000  # N/m
+K_o = 0.0592 # Nm / rad [change me]
+#92.95, 0.05, 0.1 - falls back
+#92.95, 0.06, 0.1 - bounces in place for a while, then forward
+#92.95, 0.075, 0.1 - falls forward
+K_o = 170 # Nm / rad [change me]
+
+#92.95, 0.0595, 0.1 - falls forward
+#92.95, 0.0595, 0.11 - falls back
+#92.95, 0.0593, 0.1 - falls forward 32.934s
+#92.95, 0.0592, 0.1 - falls back 36.377s
+#92.99, 0.0592, 0.1 - falls forward 28.834s
+
+#changing k_o = pd error , slight p error
+#changing p0 = small changes = change v and y error a lot
+#changing pd0 = velocity and y error change and p error
+#how to change both to tweak it?	
+
+# State (with initial conditions):
+x = frame()
+@@ -64,11 +61,13 @@ x.x = 0.0
+x.y = h
+x.xd = vx0
+x.yd = 0.0
+x.p = 0.0
+x.pd = 0.1 # [change me]
+# 92.95, 0.0001, 0.01 - 1 minute 54 secs
+#92.93, 0.00092, 0 - ball bounces very fast / high in air 3 mins 4 secs
+#92.89, 0.00015, 0.04 - 30.669 secs
+p0 = 0.019
+x.p = p0
+pd0 = 0.03 # [change me]
+x.pd = pd0 # 
+
+#0.0005, 0.11365
+#0.0003, 0.01, 0.1115
+
+#Dimensionless parameters
+h_pi = h/r0
+@@ -99,11 +98,11 @@ spring = helix(pos=(return_axis.x, h + return_axis.y, 0),
+# Special new internal graphics variable
+f.current_rot = 0.0
+
+#counts = 0
+#def report_bounce():
+#    global counts
+#    print "bounced %d times!" % counts
+#    counts += 1
+counts = 1
+def report_bounce():
+    global counts
+    print "bounced %d times!" % counts
+    counts += 1
+
+
+def rotate(new_rot):
+@@ -181,19 +180,19 @@ while True:
+                m.force_x = fc_x + ft_x
+                m.force_y = fc_y + ft_y - mass * gravity
+            else:
+                #report_bounce()
+                report_bounce()
+                m.force_x = 0.0
+                m.force_y = - mass*gravity
+                m.torque = 0.0
+                x.contact = False
+				
+                result = h - m.l_y - (0.5*x.yd**2/gravity)
+                result = h - x.y - ((0.5*x.yd**2)/gravity)
+			
+				# print stuff
+				#print stuff
+                print "velocity error %.4f" %(x.xd-vx0)
+                print "y error %.4f" %result
+                print "pd error %.4f" %(0.01 - x.pd) #not sure how to subtract the original x.pd above by the new x.pd below
+                print "p error %.4f" %(-x.p + (x.pd*(x.yd)/gravity))
+                print "pd error %.4f" %(pd0 - x.pd) 
+                print "p error %.4f" %(p0 - x.p + ((x.pd*x.yd)/gravity))
+				
+                exit()
+
+@@ -210,8 +209,8 @@ while True:
+        x.y += x.yd * tiny_dt
+        x.p += x.pd * tiny_dt
+
+        #if x.y < 0.5:
+        #    exit()
+        if x.y < 0.5:
+            exit()
+
+    # update graphics:
+    rotate(x.p)
+@@ -220,3 +219,15 @@ while True:
+    spring.axis = (m.l_x, m.l_y, 0.0)
+    for i in range(0, 5):
+        floors[i].pos.x = (-x.x + 5 * i) % 20 - 10
+
+#92.95, 0.05, 0.1 - falls back
+#92.95, 0.06, 0.1 - bounces in place for a while, then forward
+#92.95, 0.075, 0.1 - falls forward
+#92.95, 0.0595, 0.1 - falls forward
+#92.95, 0.0595, 0.11 - falls back
+#92.95, 0.0593, 0.1 - falls forward 32.934s
+#92.95, 0.0592, 0.1 - falls back 36.377s
+#92.99, 0.0592, 0.1 - falls forward 28.834s
+# 92.95, 0.0001, 0.01 - 1 minute 54 secs
+#92.93, 0.00092, 0 - ball bounces very fast / high in air 3 mins 4 secs
+#92.89, 0.00015, 0.04 - 30.669 secs
+\ No newline at end of file

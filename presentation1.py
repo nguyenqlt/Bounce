@@ -1,7 +1,7 @@
 from __future__ import division
 from visual import *
 from visual.graph import *
-import time
+
 
 
 def setup_graphics():
@@ -28,7 +28,6 @@ def setup_graphics():
     spring = helix(pos=(0., 0.0, 0),
                    axis=vector(0, -2, 0), radius=0.6, color=color.yellow)
     f.spring = spring
-    f.spring_velocity = 0
 
     floors = []
     for i in range(0, 5):
@@ -41,7 +40,6 @@ def setup_graphics():
     f.floors = floors
     return f
 
-#params = np.array([3.17668374201,7.18850217025,-0.0786962870327,1.34667502859,1.57141426143])
 
 def update_graphics(x, f, m, scoot_backwards = 0.0):
     rotate(x.p, f)
@@ -62,36 +60,48 @@ if GRAPHICS:
 else:
     f = None
 
-	
-Second_flight_phase = False
-#if second_flight_phase = True
-#	stop_early =
 # INITIAL CONDITIONS
 # Boundary Conditions
-h = 3.18994768009  # meters, initial height of f
-vx0 = 7.20235479284  # initial horizontal velocity
+h = 2.973363  # meters, initial height of f
+vx0 = 6.9856676  # initial horizontal velocity
 p0 = 0.182398
-pd0 = -0.00963917274952
+pd0 = -0.287872
+
+
+# adjustment1 = 1.0286 to 1.0204
+# adjustment2 = 1.0204 to 0.9130
+# adjustment3 = 0.9130 to 0.8210
+# adjustment4 = 0.8210 to 0.8187
+
+
+# floor = box(size=(50, .01, 2), pos=(0, 0, 0))
+
+
+# create a composite object with f
 
 
 # Parameters
 mass = 0.5  # kg
 r0 = 2  # meters, relaxed length of spring
-theta_air = 1.39935049585
-theta_contact = 1.57076188074
+theta_air = math.radians(80)
+theta_contact = math.radians(90)
 mom_inertia = (mass * (0.1) ** 2)
 gravity = 9.8  # acceleration of gravity
-K_l = 500  # N/m
-K_o = 0.2 # Nm / rad [change me]
+K_l = 400  # N/m
+K_o = 1 # Nm / rad [change me]
 
-#params = np.array([3.17668374201,7.18850217025,-0.0786962870327,1.34667502859,1.57141426143])
+
+# changing k_o = pd error , slight p error
+# changing p0 = small changes = change v and y error a lot
+# changing pd0 = velocity and y error change and p error
+# how to change both to tweak it?
 
 # State (with initial conditions):
 class Object(object):
     pass
 
 
-def run_sim(params=[h, vx0,  pd0, theta_air, theta_contact], stop_early = False, stop_at_apex=True):
+def run_sim(params=[h, vx0,  pd0, theta_air, theta_contact], stop_early = True, stop_at_apex=False):
     h, vx0,  pd0, theta_air, theta_contact = params
     p0=0.0
     x = Object()
@@ -114,11 +124,13 @@ def run_sim(params=[h, vx0,  pd0, theta_air, theta_contact], stop_early = False,
     x0.contact = False
     x0.foot_x = 0.0
     x0.foot_y = 0.0
-    
-	
+    #0.0005, 0.11365
+    #0.0003, 0.01, 0.1115
+
     # Dimensionless parameters
     h_pi = h / r0
     v_pi = r0 / (sqrt(2 * r0 * gravity))
+
 
     # Memory:
     m = Object()
@@ -143,12 +155,15 @@ def run_sim(params=[h, vx0,  pd0, theta_air, theta_contact], stop_early = False,
     m0.l_x = 0.0
     m0.l_y = 0.0
     m0.o = theta_air
-    m0.gamma = x.p - m.o #should this be m0.o?
+    m0.gamma = x.p - m.o
     m0.timer = 0.0
     m0.has_bounced=False
 
-    x.leg_angle = x.p - m0.o #angle leg/spring relative to quadcopter
-    x.leg_velocity = f.spring_velocity #leg velocity
+    # counts = 1
+    # def report_bounce():
+    #     global counts
+    #     print "bounced %d times!" % counts
+    #     counts += 1
 
     def norm(x, y):
         return sqrt(pow(x, 2) + pow(y, 2))
@@ -164,7 +179,8 @@ def run_sim(params=[h, vx0,  pd0, theta_air, theta_contact], stop_early = False,
     t = 0
     tinySteps = 100
     tiny_dt = dt / tinySteps
-	
+    # spring.previous_deflection=0
+
     # main physics and graphics loop
     while True:
         rate(100)
@@ -189,16 +205,12 @@ def run_sim(params=[h, vx0,  pd0, theta_air, theta_contact], stop_early = False,
                 if stop_at_apex and m.has_bounced and x.yd<0:
                     f2 = setup_graphics()
                     update_graphics(x0,f2,m0, scoot_backwards = x.x)
-                    print "time elapsed %.4f" %(t)
-                    print "x1 %.11f" % (x.x)
-                    print "y1 %.11f" % (x.y)
-                    print "xd1 %.11f" % (x.xd)
                     return None
 
                 if x.foot_y <= 0.0 and m.timer<0:
                     x.foot_y = 0.0
                     x.contact = True
-                
+
             # STANCE PHASE
             if x.contact:  # when spring touches floor
                 m.l_x = x.foot_x - x.x
@@ -237,18 +249,18 @@ def run_sim(params=[h, vx0,  pd0, theta_air, theta_contact], stop_early = False,
                     print
                     # print stuff
                     print "velocity error %.4f" % (x.xd - vx0)
-                    print "velocity error from acceleration %.4f" % (xdd*t - 0) #integration of acceleration; doesn't match??
                     print "y error %.4f" % result
                     print "pd error %.4f" % (x.pd-pd0)
                     print "p error %.4f" % ( x.p + ((x.pd * x.yd) / gravity)- p0 )
 
                     cost = sqrt((x.xd - vx0) ** 2 + 20 * result ** 2 + 100 * (pd0 - x.pd)
                                 ** 2 + 200 * (p0 - x.p - ((x.pd * x.yd) / gravity)) ** 2)
+                    # important to weight it differently or else you barely get
+                    # results
                     print "cost function %.4f" % cost
                     if stop_early:
                         return cost
-                    
-                    # exit()  
+                    # exit()
 
             # compute physics loop stuff
             xdd = m.force_x / mass
@@ -266,17 +278,7 @@ def run_sim(params=[h, vx0,  pd0, theta_air, theta_contact], stop_early = False,
 
             if x.y < 0.5:
                 exit()
-            
+
         # update graphics:
         if f != None:
             update_graphics(x, f, m)
-			
-import numpy as np
-#params = np.array([h, vx0,  pd0, theta_air, theta_contact])	
-params = np.array([3.18994768009,7.20235479284,-0.00963917274952,1.39935049585,1.57076188074]) #boundary/initial conditions
-run_sim(params)
-
-#params = np.array([3.18994768009,7.20235479284,-0.00963917274952,1.39935049585,1.57076188074]) for k_l = 500 (0.0003 cost function) 
-#params = np.array([3.17668374201,7.18850217025,-0.0786962870327,1.34667502859,1.57141426143]) for k_o = 1
-#params = np.array([3.16639408661,7.17722284657,-0.020173195117,1.34934601458,1.57075573497]) for k_l = 300 (0.0003)
-#params = np.array([3.17515209752,7.18678709533,-0.00652406796842,1.38286778214,1.57080788872]) for k_o = 0.1 (0.0003)
